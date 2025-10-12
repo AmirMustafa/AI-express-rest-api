@@ -1,159 +1,168 @@
-const User = require("../models/user");
+const {
+  createUser,
+  findByEmail,
+  findById,
+  findAll,
+  emailExists,
+  validateUser,
+} = require("../models/user");
 
-// User controller functions
-const usersController = {
-  // User signup
-  signup: (req, res) => {
-    try {
-      const { email, password, name } = req.body;
+// User signup
+const signup = (req, res) => {
+  try {
+    const { email, password, name } = req.body;
 
-      // Validate input data
-      const validation = User.validate({ email, password, name });
-      if (!validation.isValid) {
-        return res.status(400).json({
-          success: false,
-          message: "Validation failed",
-          errors: validation.errors,
-        });
-      }
-
-      // Check if user already exists
-      if (User.emailExists(email)) {
-        return res.status(409).json({
-          success: false,
-          message: "User with this email already exists",
-        });
-      }
-
-      // Create new user
-      const newUser = User.create({ email, password, name });
-
-      // Return user data (excluding password)
-      const { password: _, ...userWithoutPassword } = newUser;
-
-      res.status(201).json({
-        success: true,
-        message: "User created successfully",
-        data: {
-          user: userWithoutPassword,
-        },
-      });
-    } catch (error) {
-      console.error("Signup error:", error);
-      res.status(500).json({
+    // Validate input data
+    const validation = validateUser({ email, password, name });
+    if (!validation.isValid) {
+      return res.status(400).json({
         success: false,
-        message: "Internal server error",
+        message: "Validation failed",
+        errors: validation.errors,
       });
     }
-  },
 
-  // User login
-  login: (req, res) => {
-    try {
-      const { email, password } = req.body;
-
-      // Validate input
-      if (!email || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "Email and password are required",
-        });
-      }
-
-      // Find user by email
-      const user = User.findByEmail(email);
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid email or password",
-        });
-      }
-
-      // Check password (in real app, compare with hashed password)
-      if (user.password !== password) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid email or password",
-        });
-      }
-
-      // Return user data (excluding password)
-      const { password: _, ...userWithoutPassword } = user;
-
-      res.status(200).json({
-        success: true,
-        message: "Login successful",
-        data: {
-          user: userWithoutPassword,
-        },
-      });
-    } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({
+    // Check if user already exists
+    if (emailExists(email)) {
+      return res.status(409).json({
         success: false,
-        message: "Internal server error",
+        message: "User with this email already exists",
       });
     }
-  },
 
-  // Get all users (for testing purposes)
-  getAllUsers: (req, res) => {
-    try {
-      const users = User.findAll();
-      // Remove passwords from response
-      const usersWithoutPasswords = users.map((user) => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      });
+    // Create new user
+    const newUser = createUser({ email, password, name });
 
-      res.status(200).json({
-        success: true,
-        message: "Users retrieved successfully",
-        data: {
-          users: usersWithoutPasswords,
-          count: usersWithoutPasswords.length,
-        },
-      });
-    } catch (error) {
-      console.error("Get users error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
-    }
-  },
+    // Return user data (excluding password)
+    const { password: _, ...userWithoutPassword } = newUser;
 
-  // Get user by ID
-  getUserById: (req, res) => {
-    try {
-      const { id } = req.params;
-      const user = User.findById(id);
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-
-      // Return user data (excluding password)
-      const { password, ...userWithoutPassword } = user;
-
-      res.status(200).json({
-        success: true,
-        message: "User retrieved successfully",
-        data: {
-          user: userWithoutPassword,
-        },
-      });
-    } catch (error) {
-      console.error("Get user error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
-    }
-  },
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      data: {
+        user: userWithoutPassword,
+      },
+    });
+  } catch (error) {
+    console.error("Signup error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 };
 
-module.exports = usersController;
+// User login
+const login = (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+
+    // Find user by email
+    const user = findByEmail(email);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // Check password (in real app, compare with hashed password)
+    if (user.password !== password) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // Return user data (excluding password)
+    const { password: _, ...userWithoutPassword } = user;
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      data: {
+        user: userWithoutPassword,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Get all users (for testing purposes)
+const getAllUsers = (req, res) => {
+  try {
+    const users = findAll();
+    // Remove passwords from response
+    const usersWithoutPasswords = users.map((user) => {
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Users retrieved successfully",
+      data: {
+        users: usersWithoutPasswords,
+        count: usersWithoutPasswords.length,
+      },
+    });
+  } catch (error) {
+    console.error("Get users error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Get user by ID
+const getUserById = (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Return user data (excluding password)
+    const { password, ...userWithoutPassword } = user;
+
+    res.status(200).json({
+      success: true,
+      message: "User retrieved successfully",
+      data: {
+        user: userWithoutPassword,
+      },
+    });
+  } catch (error) {
+    console.error("Get user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+module.exports = {
+  signup,
+  login,
+  getAllUsers,
+  getUserById,
+};

@@ -8,7 +8,7 @@ import {
 } from "../models/user.js";
 
 // User signup
-const signup = (req, res) => {
+export function signup(req, res) {
   try {
     const { email, password, name } = req.body;
 
@@ -50,10 +50,10 @@ const signup = (req, res) => {
       message: "Internal server error",
     });
   }
-};
+}
 
 // User login
-const login = (req, res) => {
+export function login(req, res) {
   try {
     const { email, password } = req.body;
 
@@ -99,10 +99,10 @@ const login = (req, res) => {
       message: "Internal server error",
     });
   }
-};
+}
 
 // Get all users (for testing purposes)
-const getAllUsers = (req, res) => {
+export function getAllUsers(req, res) {
   try {
     const users = findAll();
     // Remove passwords from response
@@ -126,10 +126,10 @@ const getAllUsers = (req, res) => {
       message: "Internal server error",
     });
   }
-};
+}
 
 // Get user by ID
-const getUserById = (req, res) => {
+export function getUserById(req, res) {
   try {
     const { id } = req.params;
     const user = findById(id);
@@ -158,6 +158,4 @@ const getUserById = (req, res) => {
       message: "Internal server error",
     });
   }
-};
-
-export { signup, login, getAllUsers, getUserById };
+}

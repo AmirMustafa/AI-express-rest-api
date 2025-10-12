@@ -2,24 +2,26 @@
 const users = []; // In-memory storage for demo purposes
 
 // User schema structure
-const createUserSchema = {
-  id: null,
-  email: null,
-  password: null,
-  name: null,
-  createdAt: null,
-  updatedAt: null,
-};
+export function createUserSchema() {
+  return {
+    id: null,
+    email: null,
+    password: null,
+    name: null,
+    createdAt: null,
+    updatedAt: null,
+  };
+}
 
 // Generate unique ID
-const generateId = () => {
+export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
-};
+}
 
 // Create a new user
-const createUser = (userData) => {
+export function createUser(userData) {
   const newUser = {
-    ...createUserSchema,
+    ...createUserSchema(),
     id: generateId(),
     email: userData.email,
     password: userData.password, // In real app, this should be hashed
@@ -30,25 +32,25 @@ const createUser = (userData) => {
 
   users.push(newUser);
   return newUser;
-};
+}
 
 // Find user by email
-const findByEmail = (email) => {
+export function findByEmail(email) {
   return users.find((user) => user.email === email);
-};
+}
 
 // Find user by ID
-const findById = (id) => {
+export function findById(id) {
   return users.find((user) => user.id === id);
-};
+}
 
 // Get all users
-const findAll = () => {
+export function findAll() {
   return users;
-};
+}
 
 // Update user
-const updateUser = (id, updateData) => {
+export function updateUser(id, updateData) {
   const userIndex = users.findIndex((user) => user.id === id);
   if (userIndex !== -1) {
     users[userIndex] = {
@@ -59,24 +61,24 @@ const updateUser = (id, updateData) => {
     return users[userIndex];
   }
   return null;
-};
+}
 
 // Delete user
-const deleteUser = (id) => {
+export function deleteUser(id) {
   const userIndex = users.findIndex((user) => user.id === id);
   if (userIndex !== -1) {
     return users.splice(userIndex, 1)[0];
   }
   return null;
-};
+}
 
 // Check if email already exists
-const emailExists = (email) => {
+export function emailExists(email) {
   return users.some((user) => user.email === email);
-};
+}
 
 // Validate user data
-const validateUser = (userData) => {
+export function validateUser(userData) {
   const errors = [];
 
   if (!userData.email) {
@@ -99,15 +101,4 @@ const validateUser = (userData) => {
     isValid: errors.length === 0,
     errors,
   };
-};
-
-export {
-  createUser,
-  findByEmail,
-  findById,
-  findAll,
-  updateUser,
-  deleteUser,
-  emailExists,
-  validateUser,
-};
+}

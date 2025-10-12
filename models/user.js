@@ -101,7 +101,7 @@ const validateUser = (userData) => {
   };
 };
 
-module.exports = {
+export {
   createUser,
   findByEmail,
   findById,

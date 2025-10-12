@@ -1,9 +1,8 @@
-const express = require("express");
+import express from "express";
+import usersRoutes from "./routes/users.js";
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Import routes
-const usersRoutes = require("./routes/users");
 
 // Middleware
 app.use(express.json()); // Parse JSON bodies
@@ -52,4 +51,4 @@ app.listen(PORT, () => {
   console.log(`Users API available at http://localhost:${PORT}/users`);
 });
 
-module.exports = app;
+export default app;

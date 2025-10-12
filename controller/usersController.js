@@ -1,11 +1,11 @@
-const {
+import {
   createUser,
   findByEmail,
   findById,
   findAll,
   emailExists,
   validateUser,
-} = require("../models/user");
+} from "../models/user.js";
 
 // User signup
 const signup = (req, res) => {
@@ -160,9 +160,4 @@ const getUserById = (req, res) => {
   }
 };
 
-module.exports = {
-  signup,
-  login,
-  getAllUsers,
-  getUserById,
-};
+export { signup, login, getAllUsers, getUserById };

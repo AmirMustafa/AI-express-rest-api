@@ -1,5 +1,5 @@
-// User model - Simple object-based approach without classes
-const users = []; // In-memory storage for demo purposes
+// User model backed by SQLite via better-sqlite3
+import db from "../db/index.js";
 
 // User schema structure
 export function createUserSchema() {
@@ -20,61 +20,81 @@ export function generateId() {
 
 // Create a new user
 export function createUser(userData) {
+  const now = new Date().toISOString();
   const newUser = {
     ...createUserSchema(),
     id: generateId(),
     email: userData.email,
     password: userData.password, // In real app, this should be hashed
     name: userData.name,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   };
 
-  users.push(newUser);
+  const stmt = db.prepare(
+    `INSERT INTO users (id, email, password, name, createdAt, updatedAt)
+     VALUES (@id, @email, @password, @name, @createdAt, @updatedAt)`
+  );
+  stmt.run(newUser);
   return newUser;
 }
 
 // Find user by email
 export function findByEmail(email) {
-  return users.find((user) => user.email === email);
+  const row = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+  return row || null;
 }
 
 // Find user by ID
 export function findById(id) {
-  return users.find((user) => user.id === id);
+  const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
+  return row || null;
 }
 
 // Get all users
 export function findAll() {
-  return users;
+  const rows = db.prepare("SELECT * FROM users ORDER BY createdAt DESC").all();
+  return rows;
 }
 
 // Update user
 export function updateUser(id, updateData) {
-  const userIndex = users.findIndex((user) => user.id === id);
-  if (userIndex !== -1) {
-    users[userIndex] = {
-      ...users[userIndex],
-      ...updateData,
-      updatedAt: new Date().toISOString(),
-    };
-    return users[userIndex];
-  }
-  return null;
+  const existing = findById(id);
+  if (!existing) return null;
+
+  const updated = {
+    ...existing,
+    ...updateData,
+    updatedAt: new Date().toISOString(),
+  };
+
+  const stmt = db.prepare(
+    `UPDATE users SET email = @email, password = @password, name = @name, updatedAt = @updatedAt
+     WHERE id = @id`
+  );
+  stmt.run({
+    id,
+    email: updated.email,
+    password: updated.password,
+    name: updated.name,
+    updatedAt: updated.updatedAt,
+  });
+
+  return findById(id);
 }
 
 // Delete user
 export function deleteUser(id) {
-  const userIndex = users.findIndex((user) => user.id === id);
-  if (userIndex !== -1) {
-    return users.splice(userIndex, 1)[0];
-  }
-  return null;
+  const existing = findById(id);
+  if (!existing) return null;
+  db.prepare("DELETE FROM users WHERE id = ?").run(id);
+  return existing;
 }
 
 // Check if email already exists
 export function emailExists(email) {
-  return users.some((user) => user.email === email);
+  const row = db.prepare("SELECT 1 FROM users WHERE email = ?").get(email);
+  return !!row;
 }
 
 // Validate user data

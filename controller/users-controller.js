@@ -6,10 +6,10 @@ import {
   emailExists,
   validateUser,
 } from "../models/user.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 // User signup
-export function signup(req, res) {
+export async function signup(req, res) {
   try {
     const { email, password, name } = req.body;
 
@@ -32,7 +32,7 @@ export function signup(req, res) {
     }
 
     // Create new user
-    const newUser = createUser({ email, password, name });
+    const newUser = await createUser({ email, password, name });
 
     // Return user data (excluding password)
     const { password: _, ...userWithoutPassword } = newUser;
@@ -54,56 +54,15 @@ export function signup(req, res) {
 }
 
 // User login
-export function login(req, res) {
+export async function login(req, res) {
   try {
     const { email, password } = req.body;
 
-    // Validate input fields exist
+    // Validate input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
         message: "Email and password are required",
-      });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "A valid email address is required",
-      });
-    }
-
-    // Check if email is already taken
-    if (!findByEmail) {
-      return res.status(500).json({
-        success: false,
-        message: "Server configuration error (findByEmail undefined)",
-      });
-    }
-    const existingUser = findByEmail(email);
-    if (!existingUser) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    // Validate password length
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be at least 6 characters long",
-      });
-    }
-
-    // Compare password with hash
-    const passwordMatch = bcrypt.compareSync(password, existingUser.password);
-    if (!passwordMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
       });
     }
 
@@ -116,8 +75,9 @@ export function login(req, res) {
       });
     }
 
-    // Check password (in real app, compare with hashed password)
-    if (user.password !== password) {
+    // Check password using async bcryptjs
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",

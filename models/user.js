@@ -1,5 +1,6 @@
 // User model backed by SQLite via better-sqlite3
 import db from "../db/index.js";
+import bcrypt from "bcryptjs";
 
 // User schema structure
 export function createUserSchema() {
@@ -19,13 +20,14 @@ export function generateId() {
 }
 
 // Create a new user
-export function createUser(userData) {
+export async function createUser(userData) {
   const now = new Date().toISOString();
+  const passwordHash = await bcrypt.hash(userData.password, 10);
   const newUser = {
     ...createUserSchema(),
     id: generateId(),
     email: userData.email,
-    password: userData.password, // In real app, this should be hashed
+    password: passwordHash,
     name: userData.name,
     createdAt: now,
     updatedAt: now,
@@ -58,13 +60,18 @@ export function findAll() {
 }
 
 // Update user
-export function updateUser(id, updateData) {
+export async function updateUser(id, updateData) {
   const existing = findById(id);
   if (!existing) return null;
+
+  const updatedPassword = updateData.password
+    ? await bcrypt.hash(updateData.password, 10)
+    : existing.password;
 
   const updated = {
     ...existing,
     ...updateData,
+    password: updatedPassword,
     updatedAt: new Date().toISOString(),
   };
 

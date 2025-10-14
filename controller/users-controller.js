@@ -6,6 +6,7 @@ import {
   emailExists,
   validateUser,
 } from "../models/user.js";
+import bcrypt from "bcrypt";
 
 // User signup
 export function signup(req, res) {
@@ -57,11 +58,52 @@ export function login(req, res) {
   try {
     const { email, password } = req.body;
 
-    // Validate input
+    // Validate input fields exist
     if (!email || !password) {
       return res.status(400).json({
         success: false,
         message: "Email and password are required",
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "A valid email address is required",
+      });
+    }
+
+    // Check if email is already taken
+    if (!findByEmail) {
+      return res.status(500).json({
+        success: false,
+        message: "Server configuration error (findByEmail undefined)",
+      });
+    }
+    const existingUser = findByEmail(email);
+    if (!existingUser) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
+    // Compare password with hash
+    const passwordMatch = bcrypt.compareSync(password, existingUser.password);
+    if (!passwordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
       });
     }
 
